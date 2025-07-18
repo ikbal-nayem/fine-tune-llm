@@ -1,10 +1,13 @@
 import ollama
 from ollama import ChatResponse
 import json
+import dotenv, os
 
-OLLAMA_MODEL = "gemma3:4b"
+dotenv.load_dotenv()
 
-def generatePrompt(law_item, language='en'):
+OLLAMA_MODEL = os.getenv('OLLAMA_MODEL')
+
+def generatePrompt(law_item):
     return f"""
     You are a legal QA generator for Bangladeshi law.
 
@@ -36,11 +39,11 @@ def generatePrompt(law_item, language='en'):
     """
 
 
-def generateQA(law_item, language='en')->list[object]:
+def generateQA(law_item)->list[object]:
     response: ChatResponse = ollama.chat(model=OLLAMA_MODEL, stream=False, messages=[
         {
             'role': 'user',
-            'content': generatePrompt(law_item, language),
+            'content': generatePrompt(law_item),
         },
     ], format="json")
 
@@ -60,8 +63,8 @@ def main():
         
 	dataset = []
 	for i, law_item in enumerate(law_items):
-		print(f"{i+1} - {law_item['section_name_en']}")
-		qa_pairs = generateQA(law_item, language='en')
+		print(f"{i+1} - ({law_item.get('section_no_en')}) {law_item.get('section_name_en')}")
+		qa_pairs = generateQA(law_item)
 		print(json.dumps(qa_pairs, indent=2))
 		for qa in qa_pairs.get('output'):
 			dataset.append(qa)
