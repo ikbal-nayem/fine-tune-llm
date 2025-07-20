@@ -79,10 +79,13 @@ def main():
             print(
                 f"{i+1} - ({law_item.get('section_no_en')}) {law_item.get('section_name_en')} ...", end="")
             qa_pairs = generateQA(law_item)
-            # print(json.dumps(qa_pairs, indent=2))
-            for qa in qa_pairs.get('output'):
-                dataset.append(qa)
-            print(f" {len(qa_pairs.get('output'))} pairs")
+            
+            try:
+                for qa in qa_pairs.get('output'):
+                    dataset.append(qa)
+                print(f" {len(qa_pairs.get('output'))} pairs")
+            except Exception as e:
+                print("Error while parsing LLM output: ", e)
 
         with open(output_files[f_i], 'w') as f:
             print(
