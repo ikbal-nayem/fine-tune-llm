@@ -64,10 +64,10 @@ def generateQA(law_item) -> list[object]:
 
 def main():
     start_time = time.time()
-    input_files = ['input-data/state-aquisition.json',
+    input_files = ['input-data/state-aquisition.json', 'input-data/registration-act.json'
                    'input-data/the-transfer-of-property-act.json']
-    output_files = ['output-data/state-aquisition.jsonl',
-                    'output-data/the-transfer-of-property-act.jsonl']
+    output_files = ['output-data/state-aquisition.json', 'output-data/registration-act.json'
+                    'output-data/the-transfer-of-property-act.json']
 
     for f_i, file in enumerate(input_files):
         print("Processing File, "+file)
@@ -79,7 +79,7 @@ def main():
             print(
                 f"{i+1} - ({law_item.get('section_no_en')}) {law_item.get('section_name_en')} ...", end="")
             qa_pairs = generateQA(law_item)
-            
+
             try:
                 for qa in qa_pairs.get('output'):
                     dataset.append(qa)
@@ -90,8 +90,7 @@ def main():
         with open(output_files[f_i], 'w') as f:
             print(
                 f"Saving {len(dataset)} pairs to {output_files[f_i]}...", end="")
-            for item in dataset:
-                f.write(json.dumps(item, ensure_ascii=False) + '\n')
+            f.write(json.dumps(dataset, ensure_ascii=False) + '\n')
             print("Done")
 
     execution_time = calculateDuration(start_time, time.time())
