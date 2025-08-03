@@ -1,8 +1,10 @@
+from accelerate import Accelerator
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 from peft import LoraConfig, get_peft_model
 from datasets import load_dataset
+
 
 MODEL = "Qwen/Qwen3-0.6B"
 DATASET = "output-data/dataset-text.jsonl"
@@ -53,20 +55,29 @@ training_args = SFTConfig(
     save_strategy="epoch",
     save_total_limit=2,
     report_to="none",                      # Disable logging to Hugging Face Hub
-    push_to_hub=False
+    push_to_hub=False,
+    dataloader_num_workers=8,
+    remove_unused_columns=False,
 )
 
-print("Start training...", flush=True)
 model.print_trainable_parameters()
 
-# SFTTrainer is a high-level trainer for instruction fine-tuning
-trainer = SFTTrainer(
-    model=model,
-    train_dataset=dataset,
-    args=training_args,
-    formatting_func=lambda x: x["text"],
-)
-print("Done")
+def main():
+    accelerator = Accelerator()
+    print("Start training...")
+    # SFTTrainer is a high-level trainer for instruction fine-tuning
+    trainer = SFTTrainer(
+        model=model,
+        train_dataset=dataset,
+        args=training_args,
+        formatting_func=lambda x: x["text"],
+    )
 
-trainer.train()
-trainer.save_model(OUTPUT_DIR)
+    trainer.train()
+    print("Done")
+    trainer.save_model(OUTPUT_DIR)
+
+    print("Fine tuned model has been saved to", OUTPUT_DIR)
+
+if __name__ == "__main__":
+    main()
