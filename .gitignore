@@ -12,3 +12,7 @@ wheels/
 *.log
 
 temp-cache
+finetuned-model
+llama.cpp/
+qwen3-0.6b-merged
+*.gguf

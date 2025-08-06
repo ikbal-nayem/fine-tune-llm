@@ -1,4 +1,3 @@
-from accelerate import Accelerator
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
@@ -47,23 +46,18 @@ training_args = SFTConfig(
     output_dir=OUTPUT_DIR,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=2,
-    num_train_epochs=5,
+    num_train_epochs=1,
     learning_rate=2e-4,
-	bf16=USE_BF16,
-	fp16=not USE_BF16 and DEVICE == "cuda",  # Fallback to FP16 if BF16 unavailable
     logging_steps=10,
     save_strategy="epoch",
     save_total_limit=2,
     report_to="none",                      # Disable logging to Hugging Face Hub
-    push_to_hub=False,
-    dataloader_num_workers=8,
-    remove_unused_columns=False,
+    push_to_hub=False
 )
 
 model.print_trainable_parameters()
 
 def main():
-    accelerator = Accelerator()
     print("Start training...")
     # SFTTrainer is a high-level trainer for instruction fine-tuning
     trainer = SFTTrainer(
