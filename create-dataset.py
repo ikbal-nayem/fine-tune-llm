@@ -12,7 +12,7 @@ dotenv.load_dotenv()
 
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL')
 
-client = Client(host='http://localhost:11434')
+client = Client()
 
 
 def generatePrompt(law_items: list[dict]) -> str:
@@ -21,9 +21,9 @@ def generatePrompt(law_items: list[dict]) -> str:
         context.append(f"""
         ACT NAME: {item.get('law_name_en') or item.get('law_name_bn')}
         REFERENCE URL: {item.get('ref_url')}
-        PART: {item.get('part_no_en') or item.get('part_no_bn')} - ({item.get('part_name_en') or item.get('part_name_bn')})
-        CHAPTER: {item.get('chapter_no_en') or item.get('chapter_no_bn')} - ({item.get('chapter_name_en')} or {item.get('chapter_name_bn')})
-        SECTION: {item.get('section_no_en') or item.get('section_no_bn')} - {item.get('section_name_en') or item.get('section_name_bn')}
+        PART: {item.get('part_no_en') or item.get('part_no_bn','')} ({item.get('part_name_en') or item.get('part_name_bn','')})
+        CHAPTER: {item.get('chapter_no_en') or item.get('chapter_no_bn','')} ({item.get('chapter_name_en') or item.get('chapter_name_bn','')})
+        SECTION: {item.get('section_no_en') or item.get('section_no_bn','')} {item.get('section_name_en') or item.get('section_name_bn','')}
         CONTENT:
         {item.get('content')}
         """)
@@ -33,7 +33,7 @@ def generatePrompt(law_items: list[dict]) -> str:
 
     Given the following law section, generate 3 to 50 unique QA pairs that a citizen might ask about this law. The number of pairs will vary depending on content size (larger the content more question pairs) upto 50. Each answer must include the section number and a clear, human-friendly explanation.
 
-    Provide questions and answers will be in English and Bangla language, The ratio will be BN:EN=1:3.
+    Provide questions and answers will be in English and Bangla language.
 
     Context:::
     {"\n\n---\n\n".join(context)}
@@ -48,18 +48,18 @@ def generatePrompt(law_items: list[dict]) -> str:
 				"question": "...",
 				"answer": "...",
 				"law_reference": <Act name, Part, Chapter, Section numbers>, // If anything missing do not set to None or null just spik it. If the context has is multiple content then set multiple section, chapter and part no if exists.
-                "context": <Summary of the content with reference url> // If reference url exists on the context set it. If not just skip it.
+                "context": <Summary of the content and reference url> // If reference url exists on the context set it. If not just skip it.
 			}},
 			...
     	]
     }}
 
-    Do not provide any extra text.
+    Make sure, do not provide any extra text or information rather than the JSON.
     """
 
 
 def generateQA(law_items: list[dict]) -> list[object]:
-    response: ChatResponse = client.chat(model=OLLAMA_MODEL, options={'think': False, 'stream': False, 'format': 'json'}, messages=[
+    response: ChatResponse = client.chat(model=OLLAMA_MODEL, stream=False, think=False, messages=[
         {
             'role': 'user',
             'content': generatePrompt(law_items),
@@ -72,11 +72,14 @@ def generateQA(law_items: list[dict]) -> list[object]:
         return qa_pairs
     except Exception as e:
         print("Error parsing LLM response:", e)
-        print("Response text:", response_text)
+        print("Response text:", response['message']['content'])
         return []
 
 
 def saveItems(file, items):
+    if len(items) == 0:
+        print('Skip')
+        return
     try:
         with open(file, '+a', encoding="utf-8") as f:
             for qa in items.get('output'):
