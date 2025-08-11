@@ -31,7 +31,7 @@ def generatePrompt(law_items: list[dict]) -> str:
     return f"""
     You are a legal QA generator for Bangladeshi law.
 
-    Given the following law section, generate 3 to 50 unique QA pairs that a citizen might ask about this law. The number of pairs will vary depending on content size (larger the content more question pairs) upto 50. Each answer must include the section number and a clear, human-friendly explanation.
+    Given the following law section, generate 3 to 30 unique QA pairs that a citizen might ask about this law. The number of pairs will vary depending on content size (larger the content more question pairs) upto 30. Each answer must include the section number and a clear, human-friendly explanation.
 
     Provide questions and answers will be in English and Bangla language.
 
@@ -40,7 +40,7 @@ def generatePrompt(law_items: list[dict]) -> str:
 
     -----
 
-    Note: **The output must be in JSON format even if there is only one QA pair**
+    Note: **The output must be in JSON format for QA pair.** Make sure the JSON
     Format output as a JSON array of:
     {{
         "output": [
@@ -53,8 +53,6 @@ def generatePrompt(law_items: list[dict]) -> str:
 			...
     	]
     }}
-
-    Make sure, do not provide any extra text or information rather than the JSON.
     """
 
 
@@ -67,7 +65,8 @@ def generateQA(law_items: list[dict]) -> list[object]:
     ], format="json")
 
     try:
-        response_text = response['message']['content'].strip()
+        response_text:str = response['message']['content'].strip()
+        response_text += "}" if response_text[-1] != "}" else ""
         qa_pairs = json.loads(response_text)
         return qa_pairs
     except Exception as e:
@@ -104,13 +103,13 @@ def main():
 
         for i, law_item in enumerate(law_items):
             print(
-                f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="")
+                f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="", flush=True)
             qa_pairs = generateQA([law_item])
             saveItems(output_files[f_i], qa_pairs)
 
             rand_items = random.sample(law_items, i+1)
             print(
-                f"\tRandom Sections {[item.get('section_no_en') or item.get('section_no_bn') for item in rand_items]} ...", end="")
+                f"\tRandom Sections {[item.get('section_no_en') or item.get('section_no_bn') for item in rand_items]} ...", end="", flush=True)
             qa_pairs = generateQA(rand_items)
             saveItems(output_files[f_i], qa_pairs)
 
