@@ -1,15 +1,18 @@
 import ollama
-from ollama import ChatResponse
+from ollama import ChatResponse, Client
 import json
 import time
 import dotenv
-import os, random
+import os
+import random
 
 from utils.util import calculateDuration
 
 dotenv.load_dotenv()
 
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL')
+
+client = Client(host='http://localhost:11434')
 
 
 def generatePrompt(law_items: list[dict]) -> str:
@@ -24,7 +27,7 @@ def generatePrompt(law_items: list[dict]) -> str:
         CONTENT:
         {item.get('content')}
         """)
-        
+
     return f"""
     You are a legal QA generator for Bangladeshi law.
 
@@ -37,7 +40,7 @@ def generatePrompt(law_items: list[dict]) -> str:
 
     -----
 
-    **The output must be in JSON format even if there is only one QA pair**
+    Note: **The output must be in JSON format even if there is only one QA pair**
     Format output as a JSON array of:
     {{
         "output": [
@@ -50,11 +53,13 @@ def generatePrompt(law_items: list[dict]) -> str:
 			...
     	]
     }}
+
+    Do not provide any extra text.
     """
 
 
 def generateQA(law_items: list[dict]) -> list[object]:
-    response: ChatResponse = ollama.chat(model=OLLAMA_MODEL, stream=False, messages=[
+    response: ChatResponse = client.chat(model=OLLAMA_MODEL, options={'think': False, 'stream': False, 'format': 'json'}, messages=[
         {
             'role': 'user',
             'content': generatePrompt(law_items),
@@ -70,6 +75,7 @@ def generateQA(law_items: list[dict]) -> list[object]:
         print("Response text:", response_text)
         return []
 
+
 def saveItems(file, items):
     try:
         with open(file, '+a', encoding="utf-8") as f:
@@ -79,6 +85,7 @@ def saveItems(file, items):
             print(f" {len(items.get('output'))} pairs")
     except Exception as e:
         print("Error while parsing LLM output: ", e, items)
+
 
 def main():
     start_time = time.time()
@@ -91,14 +98,16 @@ def main():
         print("Processing File, "+file)
         with open(file, 'r') as f:
             law_items = json.load(f)
-        
+
         for i, law_item in enumerate(law_items):
-            print(f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="")
+            print(
+                f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="")
             qa_pairs = generateQA([law_item])
             saveItems(output_files[f_i], qa_pairs)
 
             rand_items = random.sample(law_items, i+1)
-            print(f"\tRandom Sections {[item.get('section_no_en') or item.get('section_no_bn') for item in rand_items]} ...", end="")
+            print(
+                f"\tRandom Sections {[item.get('section_no_en') or item.get('section_no_bn') for item in rand_items]} ...", end="")
             qa_pairs = generateQA(rand_items)
             saveItems(output_files[f_i], qa_pairs)
 
