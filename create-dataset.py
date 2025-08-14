@@ -91,9 +91,9 @@ def saveItems(file, items):
 
 def main():
     start_time = time.time()
-    input_files = ['input-data/state-aquisition.json', 'input-data/registration-act.json'
+    input_files = ['input-data/state-aquisition.json', 'input-data/registration-act.json',
                    'input-data/the-transfer-of-property-act.json', 'others.json']
-    output_files = ['output-data/state-aquisition.jsonl', 'output-data/registration-act.jsonl'
+    output_files = ['output-data/state-aquisition.jsonl', 'output-data/registration-act.jsonl',
                     'output-data/the-transfer-of-property-act.jsonl', 'others.jsonl']
 
     for f_i, file in enumerate(input_files):
