@@ -47,12 +47,18 @@ def generatePrompt(law_items: list[dict]) -> str:
 			{{
 				"question": "...",
 				"answer": "...",
-				"law_reference": <Act name, Part, Chapter, Section numbers>, // If anything missing do not set to None or null just spik it. If the context has is multiple content then set multiple section, chapter and part no if exists.
-                "context": <Summary of the content and reference url> // If reference url exists on the context set it. If not just skip it.
+				"law_reference": <Act name, Part, Chapter, Section numbers>,
+                "context": <Summary of the content and reference url>
 			}},
 			...
     	]
     }}
+
+    Output Property details,
+        - "question": In case of this type question "What is the purpose of Section 2A??" mention law name to the question like this "What is the purpose of Section 2A? of The State Acquisition and Tenancy Act?".
+        - "law_reference": If anything missing do not set to None or null just spik it. If the context has is multiple content then set multiple section, chapter and part no if exists.
+        - "context": If reference url exists on the context set it. If not just skip it.
+    You must take care of the completing the output json.
     """
 
 
@@ -62,7 +68,7 @@ def generateQA(law_items: list[dict]) -> list[object]:
             'role': 'user',
             'content': generatePrompt(law_items),
         },
-    ], format="json")
+    ], format="json", options={"num_predict": 25000})
 
     try:
         response_text:str = response['message']['content'].strip()
@@ -91,9 +97,9 @@ def saveItems(file, items):
 
 def main():
     start_time = time.time()
-    input_files = ['input-data/state-aquisition.json', 'input-data/registration-act.json',
+    input_files = ['input-data/registration-act.json',
                    'input-data/the-transfer-of-property-act.json', 'others.json']
-    output_files = ['output-data/state-aquisition.jsonl', 'output-data/registration-act.jsonl',
+    output_files = ['output-data/registration-act.jsonl',
                     'output-data/the-transfer-of-property-act.jsonl', 'others.jsonl']
 
     for f_i, file in enumerate(input_files):
