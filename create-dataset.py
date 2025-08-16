@@ -31,9 +31,11 @@ def generatePrompt(law_items: list[dict]) -> str:
     return f"""
     You are a legal QA generator for Bangladeshi law.
 
-    Given the following law section, generate 3 to 30 unique QA pairs that a citizen might ask about this law. The number of pairs will vary depending on content size (larger the content more question pairs) upto 30. Each answer must include the section number and a clear, human-friendly explanation.
+    Given the following law section, generate 3 to 25 unique QA pairs that a citizen might ask about this law. The number of pairs will vary depending on content size (larger the content more question pairs) upto 25. Each answer must include the section number and a clear, human-friendly explanation.
 
-    Provide questions and answers will be in English and Bangla language.
+    Provide questions and answers will be in English and Bangla language. Make at least 2 bangla pairs.
+
+    If the re is multiple content in context try to make question and answer based on multiple content.
 
     Context:::
     {"\n\n---\n\n".join(context)}
@@ -68,7 +70,7 @@ def generateQA(law_items: list[dict]) -> list[object]:
             'role': 'user',
             'content': generatePrompt(law_items),
         },
-    ], format="json", options={"num_predict": 25000})
+    ], format="json", options={"num_predict": 20000})
 
     try:
         response_text:str = response['message']['content'].strip()
@@ -110,8 +112,8 @@ def main():
         for i, law_item in enumerate(law_items):
             print(
                 f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="", flush=True)
-            qa_pairs = generateQA([law_item])
-            saveItems(output_files[f_i], qa_pairs)
+            # qa_pairs = generateQA([law_item])
+            # saveItems(output_files[f_i], qa_pairs)
 
             rand_items = random.sample(law_items, i+1)
             print(
