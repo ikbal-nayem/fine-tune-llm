@@ -35,7 +35,7 @@ def generatePrompt(law_items: list[dict]) -> str:
 
     Provide questions and answers will be in English and Bangla language. Make at least 2 bangla pairs.
 
-    If the re is multiple content in context try to make question and answer based on multiple content.
+    If the re is multiple content in context, make question and answer based on multiple content. And also make creative real life question that human may ask.
 
     Context:::
     {"\n\n---\n\n".join(context)}
@@ -110,8 +110,8 @@ def main():
             law_items = json.load(f)
 
         for i, law_item in enumerate(law_items):
-            print(
-                f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="", flush=True)
+            # print(
+            #     f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="", flush=True)
             # qa_pairs = generateQA([law_item])
             # saveItems(output_files[f_i], qa_pairs)
 
