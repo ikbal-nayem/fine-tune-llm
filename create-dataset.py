@@ -29,15 +29,26 @@ def generatePrompt(law_items: list[dict]) -> str:
         """)
 
     return f"""
-    You are a legal QA generator for Bangladeshi law.
+    You are a Legal QA Generator specializing in Bangladeshi law.
+    Your task is to generate 3 to 25 unique Question-Answer (QA) pairs from the given law section(s). The number of pairs must depend on the content size (larger content → more pairs, max 25).
 
-    Given the following law section, generate 3 to 25 unique QA pairs that a citizen might ask about this law. The number of pairs will vary depending on content size (larger the content more question pairs) upto 25. Each answer must include the section number and a clear, human-friendly explanation.
+    Instructions for QA Pairs:
+    - Questions:
+        - Should sound like something a general citizen might ask in real life.
+        - Do NOT always require section numbers in the question. Example:
+            - "What happens if I don’t register my land agreement?"
+            - "Can the government cancel my tenancy rights?"
+            - "What is Section 23 of The Registration Act?" (only sometimes include law references)
+        - Include at least 2 natural Bangla questions.
 
-    Provide questions and answers will be in English and Bangla language. Make at least 2 bangla pairs.
-
-    If the re is multiple content in context, make question and answer based on multiple content. And also make creative real life question that human may ask.
-
-    Context:::
+    - Answers:
+        - Must clearly explain the law in simple, human-friendly language.
+        - Must always include the relevant Section number(s) and Act name.
+        - Should explain how the law applies in practical terms (rights, duties, penalties, or protections).
+    
+    - Output format must be JSON:
+    
+    ## Context:::
     {"\n\n---\n\n".join(context)}
 
     -----
@@ -57,10 +68,16 @@ def generatePrompt(law_items: list[dict]) -> str:
     }}
 
     Output Property details,
-        - "question": In case of this type question "What is the purpose of Section 2A??" mention law name to the question like this "What is the purpose of Section 2A? of The State Acquisition and Tenancy Act?".
+        - "question": In case of this type question "What is the purpose of Section 2A?" mention law name to the question like this "What is the purpose of Section 2A? of The State Acquisition and Tenancy Act?".
         - "law_reference": If anything missing do not set to None or null just spik it. If the context has is multiple content then set multiple section, chapter and part no if exists.
         - "context": If reference url exists on the context set it. If not just skip it.
-    You must take care of the completing the output json.
+
+    Types of questions to generate:
+        - Direct: "What is Section 23 of The Registration Act?"
+        - Practical: "What happens if I forget to register my property?"
+        - Citizen-centric: "How does <Act name, section name> protect ordinary land buyers?"
+        - Bangla: "যদি জমির দলিল রেজিস্ট্রি না করি, তাহলে কী হবে?"
+        - Scenario-based: "If two people claim ownership but only one has registration, who will be recognized by law?"
     """
 
 
@@ -110,10 +127,10 @@ def main():
             law_items = json.load(f)
 
         for i, law_item in enumerate(law_items):
-            # print(
-            #     f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="", flush=True)
-            # qa_pairs = generateQA([law_item])
-            # saveItems(output_files[f_i], qa_pairs)
+            print(
+                f"IDX {i+1} - Section [{law_item.get('section_no_en') or law_item.get('section_no_bn')}] ...", end="", flush=True)
+            qa_pairs = generateQA([law_item])
+            saveItems(output_files[f_i], qa_pairs)
 
             rand_items = random.sample(law_items, i+1)
             print(
