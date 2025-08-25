@@ -116,12 +116,10 @@ def saveItems(file, items):
 
 def main():
     start_time = time.time()
-    input_files = ['input-data/others.json']
-    output_files = ['output-data/others.jsonl']
-    # input_files = ['input-data/registration-act.json',
-    #                'input-data/the-transfer-of-property-act.json', 'input-data/others.json']
-    # output_files = ['output-data/registration-act.jsonl',
-    #                 'output-data/the-transfer-of-property-act.jsonl', 'output-data/others.jsonl']
+    input_files = ['input-data/registration-act.json',
+                   'input-data/the-transfer-of-property-act.json', 'input-data/others.json']
+    output_files = ['output-data/registration-act.jsonl',
+                    'output-data/the-transfer-of-property-act.jsonl', 'output-data/others.jsonl']
 
     for f_i, file in enumerate(input_files):
         print("Processing File, "+file)
